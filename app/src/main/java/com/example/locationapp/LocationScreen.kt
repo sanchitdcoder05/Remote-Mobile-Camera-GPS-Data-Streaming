@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
+import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.*
 import java.util.Locale
 
 @Composable
@@ -33,11 +34,11 @@ fun LocationScreen(fusedLocationClient: FusedLocationProviderClient) {
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            getCurrentLocation(context, fusedLocationClient) { latitude, longitude ->
+            startLocationUpdates(context, fusedLocationClient) { latitude, longitude ->
                 locationText = "Latitude: $latitude, Longitude: $longitude\n" + getAddressFromCoordinates(context, latitude, longitude)
             }
         } else {
-            locationText = "Permission denied"
+            locationText = "Permission denied. Can't access location."
         }
     }
 
@@ -51,7 +52,7 @@ fun LocationScreen(fusedLocationClient: FusedLocationProviderClient) {
                     context, Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                getCurrentLocation(context, fusedLocationClient) { latitude, longitude ->
+                startLocationUpdates(context, fusedLocationClient) { latitude, longitude ->
                     locationText = "Latitude: $latitude, Longitude: $longitude\n" + getAddressFromCoordinates(context, latitude, longitude)
                 }
             } else {
@@ -65,25 +66,30 @@ fun LocationScreen(fusedLocationClient: FusedLocationProviderClient) {
     }
 }
 
-fun getCurrentLocation(
+fun startLocationUpdates(
     context: Context,
     fusedLocationClient: FusedLocationProviderClient,
     onLocationReceived: (Double, Double) -> Unit
 ) {
+    val locationRequest = LocationRequest.create().apply {
+        interval = 1000 
+        fastestInterval = 500
+        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+
     if (ActivityCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     ) {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            location?.let {
-                onLocationReceived(it.latitude, it.longitude)
+        fusedLocationClient.requestLocationUpdates(locationRequest, object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                locationResult.lastLocation?.let {
+                    onLocationReceived(it.latitude, it.longitude)
+                }
             }
-        }.addOnFailureListener {
-            onLocationReceived(0.0, 0.0)
-        }
+        }, Looper.getMainLooper())
     }
 }
-
 
 fun getAddressFromCoordinates(
     context: Context,
