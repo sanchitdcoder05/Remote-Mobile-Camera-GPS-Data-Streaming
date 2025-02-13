@@ -2,8 +2,12 @@ package com.example.locationapp
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraDevice
+import android.hardware.camera2.CameraManager
 import android.location.Geocoder
 import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -35,14 +40,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ServiceCompat.startForeground
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.navigation.NavController
 import com.google.android.gms.location.*
+import com.google.api.Service
 import com.google.firebase.database.FirebaseDatabase
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LocationScreen(fusedLocationClient: FusedLocationProviderClient) {
+fun LocationScreen(fusedLocationClient: FusedLocationProviderClient, navController: NavController) {
     val context = LocalContext.current
     var locationText by remember { mutableStateOf("Press the button to get location") }
 
@@ -79,10 +88,6 @@ fun LocationScreen(fusedLocationClient: FusedLocationProviderClient) {
 
 
 
-
-
-
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -101,6 +106,21 @@ fun LocationScreen(fusedLocationClient: FusedLocationProviderClient) {
                     Text(
                         "Targeted Device", fontSize = 25.sp,
                     )
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                Row (
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    Button(
+                        modifier = Modifier.padding(10.dp),
+                        onClick = {
+                            navController.navigate("WebViewScreen")
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White)
+                    ) {
+                        Text(text = "Give Permission")
+                    }
                 }
 //              Text(text = locationText, modifier = Modifier.padding(16.dp))
 //                Row(
