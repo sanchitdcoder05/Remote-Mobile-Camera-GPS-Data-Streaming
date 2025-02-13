@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "92193062122",
+    "project_id": "gps-data-streaming-47d8b",
+    "storage_bucket": "gps-data-streaming-47d8b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:92193062122:android:a6697fbb96df2937db2b93",
+        "android_client_info": {
+          "package_name": "com.example.locationapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtv_lLjRpfqPIRAuv_mFEzzIrPCSFw-Ro"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

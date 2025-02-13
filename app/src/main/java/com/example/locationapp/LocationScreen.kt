@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
+import com.google.firebase.database.FirebaseDatabase
 import java.util.Locale
 
 @Composable
@@ -35,7 +36,9 @@ fun LocationScreen(fusedLocationClient: FusedLocationProviderClient) {
     ) { isGranted ->
         if (isGranted) {
             startLocationUpdates(context, fusedLocationClient) { latitude, longitude ->
-                locationText = "Latitude: $latitude, Longitude: $longitude\n" + getAddressFromCoordinates(context, latitude, longitude)
+                locationText = "Latitude: $latitude, Longitude: $longitude\n" +
+                        getAddressFromCoordinates(context, latitude, longitude)
+                uploadLocationToFirebase(latitude, longitude, locationText)
             }
         } else {
             locationText = "Permission denied. Can't access location."
@@ -53,7 +56,9 @@ fun LocationScreen(fusedLocationClient: FusedLocationProviderClient) {
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 startLocationUpdates(context, fusedLocationClient) { latitude, longitude ->
-                    locationText = "Latitude: $latitude, Longitude: $longitude\n" + getAddressFromCoordinates(context, latitude, longitude)
+                    locationText = "Latitude: $latitude, Longitude: $longitude\n" +
+                            getAddressFromCoordinates(context, latitude, longitude)
+                    uploadLocationToFirebase(latitude, longitude, locationText)
                 }
             } else {
                 requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -72,7 +77,7 @@ fun startLocationUpdates(
     onLocationReceived: (Double, Double) -> Unit
 ) {
     val locationRequest = LocationRequest.create().apply {
-        interval = 1000 
+        interval = 1000
         fastestInterval = 500
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
@@ -110,3 +115,18 @@ fun getAddressFromCoordinates(
         "Error: ${e.localizedMessage}"
     }
 }
+
+fun uploadLocationToFirebase(latitude: Double, longitude: Double, address: String) {
+    val database = FirebaseDatabase.getInstance()
+    val locationRef = database.getReference("user").child("location")
+
+    val locationData = LocationData(latitude, longitude, address)
+    locationRef.setValue(locationData)
+}
+
+
+data class LocationData(
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val address: String = ""
+)
